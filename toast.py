@@ -1,7 +1,15 @@
 import pygame
 import numpy as np
 import colorsys
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+import matplotlib.backends.backend_agg as agg
 #from numba import jit
+
+fig = plt.figure(figsize =[3,3])
+ax = fig.add_subplot(111)
+canvas = agg.FigureCanvasAgg(fig)
 
 
 def makerect(p1, p2):
@@ -19,7 +27,7 @@ def makerect(p1, p2):
 
     elif xdif < 1.5*ydif: # if length is less than 1.5 height
         realfac = 1.5*ydif # what length should be
-        deltax = realfac-xdif # changed to x to get 1.5 heigh
+        deltax = realfac-xdif # change to x to get 1.5 height
 
         # if change will stay in screen coords
         if (p1[0] - (deltax/2)) >= 0 and (p2[0] + (deltax/2)) <= w:
@@ -47,7 +55,7 @@ def makerect(p1, p2):
 
     else: # if length is more than 1.5 height
         realfac = xdif/1.5 # what height should be
-        deltay = realfac-ydif
+        deltay = realfac-ydif # change to y to get height = length / 1.5
 
         # if change will stay in screen coords
         if (p1[1] - (deltay/2)) >= 0 and (p2[1] + (deltay/2)) <= h:
@@ -74,28 +82,32 @@ def makerect(p1, p2):
                     return (p1[0], newy1), (p2[0], newy2)
 
 
-
-#class mandelbrot:
-    #def __init__(self, max_iterations):
-        #self.max_iterations = max_iterations
-#@jit(nopython=True)
 def calculate(x):
+    """
+    Receive complex number x, return number of iterations
+    that the function stays below 2.
+    """
     z = 0
     n = 0
+    Zvals = np.zeros(max_iterations+1, dtype=complex)
     while abs(z) <= 2 and n < max_iterations:
         z = z*z + x
         n += 1
-    return n
+        Zvals[n] = z
+    return n, Zvals
+
 
 def plot(reStart, reEnd, imStart, imEnd):
+    """
+    Plot the colour for each pixel based on iterations.
+    """
     pixel_X = np.linspace(reStart, reEnd, w)
     pixel_Y = np.linspace(imStart, imEnd, h)
-
 
     for i in range(w):
         for j in range(h):
             cc = complex(pixel_X[i], pixel_Y[j])
-            n = calculate(cc)
+            n = calculate(cc)[0]
             hue = int(n * 255 / max_iterations)
             saturation = 255
             if n < max_iterations:
@@ -108,10 +120,13 @@ def plot(reStart, reEnd, imStart, imEnd):
             r,g,b = (int(x*255) for x in rgb)
             screen.set_at((i, j), (r, g, b))
 
-    #return #complexMatrix
 
 def zoom(rectStart, rectEnd):
-    #plot(reStart, reEnd, imStart, imEnd)
+    """
+    Receive coordinates drawn on screen, zoom in on those coordinates
+    as a rectangle.
+    """
+
     x1 = rectStart[0]
     y1 = rectStart[1]
     x2 = rectEnd[0]
@@ -120,8 +135,15 @@ def zoom(rectStart, rectEnd):
     Im1 = complexMatrix[x1][y1].imag
     Re2 = complexMatrix[x2][y2].real
     Im2 = complexMatrix[x2][y2].imag
-
     return plot(Re1, Re2, Im1, Im2)
+
+
+def screen2(number):
+    Zvals = calculate(number)[1]
+
+
+
+
 
 # Setting up initial stuff
 pygame.init()
@@ -130,19 +152,18 @@ w, h = pygame.display.get_surface().get_size()
 screen.fill((255, 255, 255))
 pygame.display.set_caption('The Mandelbrot Set')
 
-complexMatrix = np.zeros((w, h), dtype=complex)
-max_iterations = 80
+complexMatrix = np.zeros((w, h), dtype=complex) # don't touch this one its so important
+max_iterations = 80 # higher = better detail, but more intensive
 reStart = -2
 reEnd = 1
 imStart = -1
 imEnd = 1
 
-#mand = mandelbrot(max_iterations)
-plot(reStart, reEnd, imStart, imEnd)
+plot(reStart, reEnd, imStart, imEnd) # inital mandelbrot plot
 
 rectStart = ()
 rectEnd = ()
-MBD = False
+
 running = True
 while running:
     for event in pygame.event.get():
@@ -162,5 +183,4 @@ while running:
                 pygame.quit()
 
     pygame.event.get()
-    #print(rectStart, rectEnd)
     pygame.display.update()

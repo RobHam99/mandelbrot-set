@@ -1,7 +1,5 @@
 import numpy as np
 
-
-
 def makerect(p1, p2):
     xdif = p2[0]-p1[0]
     ydif = p2[1]-p1[1]
@@ -66,15 +64,28 @@ def makerect(p1, p2):
                     return (p1[0], newy1), (p2[0], newy2)
 
 
+def calculate(x):
+    """
+    Receive complex number x, return number of iterations
+    that the function stays below 2.
+    """
+    z = 0
+    n = 0
+    Zvals = np.zeros(max_iterations+1, dtype=complex)
+    while abs(z) <= 2 and n < max_iterations:
+        z = z*z + x
+        n += 1
+        Zvals[n] = z
+    return n, Zvals
+
+def screen2(number):
+    Zvals = calculate(number)[1]
+    print(Zvals)
+    return Zvals
 
 
-w = 600
-h = 400
-p1 = (100, 120)
-p2 = (600, 140)
+max_iterations = 10
 
-p3, p4 = makerect(p1, p2)
+number = complex(-0.5, 0.5)
 
-print(p3)
-print(p4)
-print((p4[0]-p3[0])/(p4[1]-p3[1]))
+Zvals = screen2(number)
