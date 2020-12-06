@@ -1,4 +1,7 @@
 import numpy as np
+from numba import jit
+import matplotlib.pyplot as plt
+from matplotlib.animation import FuncAnimation
 
 def makerect(p1, p2):
     xdif = p2[0]-p1[0]
@@ -72,20 +75,48 @@ def calculate(x):
     z = 0
     n = 0
     Zvals = np.zeros(max_iterations+1, dtype=complex)
-    while abs(z) <= 2 and n < max_iterations:
+    while n < max_iterations:
         z = z*z + x
         n += 1
         Zvals[n] = z
     return n, Zvals
 
-def screen2(number):
-    Zvals = calculate(number)[1]
-    print(Zvals)
-    return Zvals
 
+w = 600
+h = 400
+max_iterations = 80
+"""
+complexMatrix = np.zeros((w, h), dtype=complex)
+pixelMatrix = []
 
-max_iterations = 10
+real = np.linspace(-2, 1, w)
+img = np.linspace(-1, 1, h)
 
-number = complex(-0.5, 0.5)
+for i in range(w):
+    for j in range(h):
+        cc = complex(real[i], img[j])
+        complexMatrix[i][j] = cc
+        pixelMatrix.append([i, j])
 
-Zvals = screen2(number)
+#
+where = np.argwhere(complexMatrix == (-2-1j))[0]
+i = -2 +1j
+print(where)
+"""
+fig = plt.figure()
+
+num = complex(0, 2)
+Zvals = calculate(num)[1]
+print(Zvals)
+x = Zvals.real
+y = Zvals.imag
+
+graph, = plt.plot([], [], 'o')
+
+def animate(i):
+    graph.set_data(x[:i+1], y[:i+1])
+    return graph
+
+xlen = len(x)
+ani = FuncAnimation(fig, animate, frames=10, interval=1000)
+plt.show()

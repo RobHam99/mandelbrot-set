@@ -1,15 +1,7 @@
 import pygame
 import numpy as np
 import colorsys
-import matplotlib
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt
-import matplotlib.backends.backend_agg as agg
 #from numba import jit
-
-fig = plt.figure(figsize =[3,3])
-ax = fig.add_subplot(111)
-canvas = agg.FigureCanvasAgg(fig)
 
 
 def makerect(p1, p2):
@@ -139,9 +131,35 @@ def zoom(rectStart, rectEnd):
 
 
 def screen2(number):
-    Zvals = calculate(number)[1]
+    complexMatrix2 = np.zeros((w, h), dtype=complex)
+    pixelMatrix = np.zeros((w, h), dtype=complex)
+    #pixelMatrix = []
 
+    nr = number.real
+    ni = number.imag * 1j
 
+    real = np.linspace(-2, 1, w)
+    img = np.linspace(-1, 1, h)
+
+    for i in range(w):
+        for j, k in zip(range(h), range(h-1, -1, -1)):
+            cc = complex(real[i], img[k])
+            rp = complex(i, j)
+            complexMatrix2[i][j] = cc
+            pixelMatrix[i][j] = rp
+
+    ycent = int(h/2)
+    xline = int(w/2) + 100
+    print(complexMatrix2[xline][ycent])
+    find_element = np.argwhere(complexMatrix2 == number)[0]
+
+    x_i = find_element[0]
+    y_i = find_element[1]
+
+    x = pixelMatrix[x_i][y_i].imag
+    y = pixelMatrix[x_i][y_i].real
+
+    pygame.draw.line(screen, black, (w/2, h/2), (x_i , y_i), 6)
 
 
 
@@ -151,6 +169,10 @@ screen = pygame.display.set_mode((800, 600))
 w, h = pygame.display.get_surface().get_size()
 screen.fill((255, 255, 255))
 pygame.display.set_caption('The Mandelbrot Set')
+clock = pygame.time.Clock()
+black = (0, 0, 0)
+
+origin = (w/2, h/2)
 
 complexMatrix = np.zeros((w, h), dtype=complex) # don't touch this one its so important
 max_iterations = 80 # higher = better detail, but more intensive
@@ -164,23 +186,48 @@ plot(reStart, reEnd, imStart, imEnd) # inital mandelbrot plot
 rectStart = ()
 rectEnd = ()
 
+s2 = complex(-0.12265331664580725, -0.0016694490818029983)
+
+which_screen = 1
+zs2 = 0
+ns2 = 0
+
+
 running = True
 while running:
+    clock.tick(1)
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
             pygame.quit()
-        elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+        elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and which_screen == 1:
             rectStart = event.pos
-        elif event.type == pygame.MOUSEBUTTONUP and event.button == 1:
+        elif event.type == pygame.MOUSEBUTTONUP and event.button == 1 and which_screen == 1:
             rectEnd = event.pos
             rectS, rectE = makerect(rectStart, rectEnd)
             zoom(rectS, rectE)
         elif event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_BACKSPACE:
+            if event.key == pygame.K_BACKSPACE and which_screen == 1:
                 plot(reStart, reEnd, imStart, imEnd)
             elif event.key == pygame.K_ESCAPE:
                 pygame.quit()
+            elif event.key == pygame.K_RIGHT:
+                which_screen = 2
+            elif event.key == pygame.K_LEFT:
+                which_screen = 1
+                plot(reStart, reEnd, imStart, imEnd)
+
+
+    if which_screen == 2:
+        screen.fill((255, 255, 255))
+        pygame.draw.line(screen, black, (0, h/2), (w, h/2))
+        pygame.draw.line(screen, black, (w/2, 0), (w/2, h))
+
+        if abs(zs2) <= 2 and ns2 < max_iterations:
+            zs2 = zs2*zs2 + s2
+            ns2 += 1
+            screen2(zs2)
+
 
     pygame.event.get()
     pygame.display.update()
