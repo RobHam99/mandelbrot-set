@@ -1,9 +1,9 @@
 import pygame
 import numpy as np
 import colorsys
-#from numba import jit
+from numba import jit
 
-
+@jit(nopython=True)
 def makerect(p1, p2):
     """
     Function to make sure the zoom doesn't squish dimensions
@@ -73,7 +73,7 @@ def makerect(p1, p2):
                     newy1 = int(p1[1] - (deltay - deltay2))
                     return (p1[0], newy1), (p2[0], newy2)
 
-
+@jit(nopython=True)
 def calculate(x):
     """
     Receive complex number x, return number of iterations
@@ -81,12 +81,10 @@ def calculate(x):
     """
     z = 0
     n = 0
-    Zvals = np.zeros(max_iterations+1, dtype=complex)
     while abs(z) <= 2 and n < max_iterations:
         z = z*z + x
         n += 1
-        Zvals[n] = z
-    return n, Zvals
+    return n
 
 
 def plot(reStart, reEnd, imStart, imEnd):
@@ -99,7 +97,7 @@ def plot(reStart, reEnd, imStart, imEnd):
     for i in range(w):
         for j in range(h):
             cc = complex(pixel_X[i], pixel_Y[j])
-            n = calculate(cc)[0]
+            n = calculate(cc)
             hue = int(n * 255 / max_iterations)
             saturation = 255
             if n < max_iterations:
@@ -129,7 +127,7 @@ def zoom(rectStart, rectEnd):
     Im2 = complexMatrix[x2][y2].imag
     return plot(Re1, Re2, Im1, Im2)
 
-
+"""
 def screen2(number):
     complexMatrix2 = np.zeros((w, h), dtype=complex)
     pixelMatrix = np.zeros((w, h), dtype=complex)
@@ -160,7 +158,7 @@ def screen2(number):
     y = pixelMatrix[x_i][y_i].real
 
     pygame.draw.line(screen, black, (w/2, h/2), (x_i , y_i), 6)
-
+"""
 
 
 # Setting up initial stuff
@@ -186,31 +184,37 @@ plot(reStart, reEnd, imStart, imEnd) # inital mandelbrot plot
 rectStart = ()
 rectEnd = ()
 
+"""
 s2 = complex(-0.12265331664580725, -0.0016694490818029983)
 
 which_screen = 1
 zs2 = 0
 ns2 = 0
-
+"""
 
 running = True
 while running:
-    clock.tick(1)
+    #clock.tick(1)
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
             pygame.quit()
-        elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and which_screen == 1:
+        elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1: # and which_screen == 1:
             rectStart = event.pos
-        elif event.type == pygame.MOUSEBUTTONUP and event.button == 1 and which_screen == 1:
+            reStrt = pygame.mouse.get_pos()
+            #pygame.display.update()
+        elif event.type == pygame.MOUSEBUTTONUP and event.button == 1: # and which_screen == 1:
             rectEnd = event.pos
+            reNd = pygame.mouse.get_pos()
             rectS, rectE = makerect(rectStart, rectEnd)
             zoom(rectS, rectE)
+            pygame.display.update()
         elif event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_BACKSPACE and which_screen == 1:
+            if event.key == pygame.K_BACKSPACE: # and which_screen == 1:
                 plot(reStart, reEnd, imStart, imEnd)
             elif event.key == pygame.K_ESCAPE:
                 pygame.quit()
+    """
             elif event.key == pygame.K_RIGHT:
                 which_screen = 2
             elif event.key == pygame.K_LEFT:
@@ -227,7 +231,7 @@ while running:
             zs2 = zs2*zs2 + s2
             ns2 += 1
             screen2(zs2)
-
+    """
 
     pygame.event.get()
     pygame.display.update()
