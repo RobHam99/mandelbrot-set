@@ -73,11 +73,13 @@ def make_rectangle(p1, p2):
                     newy1 = int(p1[1] - (deltay - deltay2))
                     return (p1[0], newy1), (p2[0], newy2)
 
+
 @jit(nopython=True)
 def calculate(x):
     """
     Receive complex number x, return number of iterations
-    that the function stays below 2.
+    that the function stays below 2. Function from:
+    https://www.codingame.com/playgrounds/2358/how-to-plot-the-mandelbrot-set/mandelbrot-set
     """
     z = 0
     n = 0
@@ -89,7 +91,8 @@ def calculate(x):
 
 def plot(reStart, reEnd, imStart, imEnd):
     """
-    Plot the colour for each pixel based on iterations.
+    Plot the colour for each pixel based on iterations. Adapted from:
+    https://www.codingame.com/playgrounds/2358/how-to-plot-the-mandelbrot-set/mandelbrot-set
     """
     pixel_X = np.linspace(reStart, reEnd, w)
     pixel_Y = np.linspace(imStart, imEnd, h)
@@ -173,7 +176,7 @@ black = (0, 0, 0)
 origin = (w/2, h/2)
 
 complexMatrix = np.zeros((w, h), dtype=complex) # don't touch this one its so important
-max_iterations = 1000 # higher = better detail, but more intensive
+max_iterations = 500 # higher = better detail, but more intensive
 
 reStart = -2
 reEnd = 1
@@ -181,7 +184,7 @@ imStart = -1
 imEnd = 1
 
 plot(reStart, reEnd, imStart, imEnd) # inital mandelbrot plot
-
+pygame.display.update()
 rectStart = ()
 rectEnd = ()
 
@@ -195,14 +198,14 @@ ns2 = 0
 
 running = True
 while running:
-    #clock.tick(1)
+    clock.tick(60)
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
             pygame.quit()
         elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1: # and which_screen == 1:
             rectStart = event.pos
-            #pygame.display.update()
+            pygame.display.update()
         elif event.type == pygame.MOUSEBUTTONUP and event.button == 1: # and which_screen == 1:
             rectEnd = event.pos
             rectS, rectE = make_rectangle(rectStart, rectEnd)
@@ -211,6 +214,7 @@ while running:
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_BACKSPACE: # and which_screen == 1:
                 plot(reStart, reEnd, imStart, imEnd)
+                pygame.display.update()
             elif event.key == pygame.K_ESCAPE:
                 pygame.quit()
     """
@@ -233,4 +237,3 @@ while running:
     """
 
     pygame.event.get()
-    pygame.display.update()
