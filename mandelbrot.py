@@ -4,7 +4,7 @@ import colorsys
 from numba import jit
 
 @jit(nopython=True)
-def makerect(p1, p2):
+def make_rectangle(p1, p2):
     """
     Function to make sure the zoom doesn't squish dimensions
     e.g. if you draw a rectangle way longer than it is high
@@ -96,15 +96,15 @@ def plot(reStart, reEnd, imStart, imEnd):
 
     for i in range(w):
         for j in range(h):
-            cc = complex(pixel_X[i], pixel_Y[j])
-            n = calculate(cc)
+            c = complex(pixel_X[i], pixel_Y[j])
+            n = calculate(c)
             hue = int(n * 255 / max_iterations)
             saturation = 255
             if n < max_iterations:
                 value = 255
             else:
                 value = 0
-            complexMatrix[i][j] = cc
+            complexMatrix[i][j] = c
 
             rgb = colorsys.hsv_to_rgb(hue/255, saturation/255, value/255)
             r,g,b = (int(x*255) for x in rgb)
@@ -173,7 +173,8 @@ black = (0, 0, 0)
 origin = (w/2, h/2)
 
 complexMatrix = np.zeros((w, h), dtype=complex) # don't touch this one its so important
-max_iterations = 80 # higher = better detail, but more intensive
+max_iterations = 1000 # higher = better detail, but more intensive
+
 reStart = -2
 reEnd = 1
 imStart = -1
@@ -201,12 +202,10 @@ while running:
             pygame.quit()
         elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1: # and which_screen == 1:
             rectStart = event.pos
-            reStrt = pygame.mouse.get_pos()
             #pygame.display.update()
         elif event.type == pygame.MOUSEBUTTONUP and event.button == 1: # and which_screen == 1:
             rectEnd = event.pos
-            reNd = pygame.mouse.get_pos()
-            rectS, rectE = makerect(rectStart, rectEnd)
+            rectS, rectE = make_rectangle(rectStart, rectEnd)
             zoom(rectS, rectE)
             pygame.display.update()
         elif event.type == pygame.KEYDOWN:
