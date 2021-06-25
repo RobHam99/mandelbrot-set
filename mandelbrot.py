@@ -78,90 +78,70 @@ def make_rectangle(p1, p2):
 def calculate(x):
     """
     Receive complex number x, return number of iterations
-    that the function stays below 2. Function from:
-    https://www.codingame.com/playgrounds/2358/how-to-plot-the-mandelbrot-set/mandelbrot-set
+    that the function stays below 2.
     """
     z = 0
-    n = 0
-    while abs(z) <= 2 and n < max_iterations:
-        z = z*z + x
-        n += 1
-    return n
+    iterations = 0
+    while abs(z) <= 2 and iterations < max_iterations:
+        z = z**2 + x
+        iterations += 1
+    return iterations
 
 
 def plot(reStart, reEnd, imStart, imEnd):
     """
-    Plot the colour for each pixel based on iterations. Adapted from:
-    https://www.codingame.com/playgrounds/2358/how-to-plot-the-mandelbrot-set/mandelbrot-set
+    Plot the colour for each pixel based on iterations
     """
-    pixel_X = np.linspace(reStart, reEnd, w)
-    pixel_Y = np.linspace(imStart, imEnd, h)
+    pixel_x = np.linspace(reStart, reEnd, w)
+    pixel_y = np.linspace(imStart, imEnd, h)
 
+    # experimenting with 2 different colour sections added together, e.g. a range of blues and a range of yellows
+    #hue1 = np.linspace(186, 90, int(max_iterations/2))
+    #hue2 = np.linspace(0, 255, int(max_iterations/2) + 1)
+    #hue_range = np.concatenate((hue1, hue2))
+
+    # kind of blue to purple range - my favourite range so far
+    hue_range = np.linspace(145, 240, max_iterations+1)
+    # experimenting with value and sat ranges, but they don't look as vibrant
+    #value_range = np.linspace(50, 255, max_iterations)
+    #saturation_range = np.linspace(50, 255, max_iterations+1)
     for i in range(w):
         for j in range(h):
-            c = complex(pixel_X[i], pixel_Y[j])
+            c = complex(pixel_x[i], pixel_y[j])
             n = calculate(c)
-            hue = int(n * 255 / max_iterations)
+            hue = int(hue_range[n]) # assign hue from linspace index
+            #hue = int(n * 130 / max_iterations) # full rgb spectrum
+
             saturation = 255
+            #saturation = 171
+            #saturation = int(saturation_range[n])
+
             if n < max_iterations:
+                #value = int(value_range[n])
                 value = 255
             else:
                 value = 0
-            complexMatrix[i][j] = c
+            complex_matrix[i][j] = c
 
             rgb = colorsys.hsv_to_rgb(hue/255, saturation/255, value/255)
             r,g,b = (int(x*255) for x in rgb)
             screen.set_at((i, j), (r, g, b))
 
 
-def zoom(rectStart, rectEnd):
+def zoom(rect_start, rect_end):
     """
     Receive coordinates drawn on screen, zoom in on those coordinates
     as a rectangle.
     """
-
-    x1 = rectStart[0]
-    y1 = rectStart[1]
-    x2 = rectEnd[0]
-    y2 = rectEnd[1]
-    Re1 = complexMatrix[x1][y1].real
-    Im1 = complexMatrix[x1][y1].imag
-    Re2 = complexMatrix[x2][y2].real
-    Im2 = complexMatrix[x2][y2].imag
+    x1 = rect_start[0]
+    y1 = rect_start[1]
+    x2 = rect_end[0]
+    y2 = rect_end[1]
+    Re1 = complex_matrix[x1][y1].real
+    Im1 = complex_matrix[x1][y1].imag
+    Re2 = complex_matrix[x2][y2].real
+    Im2 = complex_matrix[x2][y2].imag
     return plot(Re1, Re2, Im1, Im2)
-
-"""
-def screen2(number):
-    complexMatrix2 = np.zeros((w, h), dtype=complex)
-    pixelMatrix = np.zeros((w, h), dtype=complex)
-    #pixelMatrix = []
-
-    nr = number.real
-    ni = number.imag * 1j
-
-    real = np.linspace(-2, 1, w)
-    img = np.linspace(-1, 1, h)
-
-    for i in range(w):
-        for j, k in zip(range(h), range(h-1, -1, -1)):
-            cc = complex(real[i], img[k])
-            rp = complex(i, j)
-            complexMatrix2[i][j] = cc
-            pixelMatrix[i][j] = rp
-
-    ycent = int(h/2)
-    xline = int(w/2) + 100
-    print(complexMatrix2[xline][ycent])
-    find_element = np.argwhere(complexMatrix2 == number)[0]
-
-    x_i = find_element[0]
-    y_i = find_element[1]
-
-    x = pixelMatrix[x_i][y_i].imag
-    y = pixelMatrix[x_i][y_i].real
-
-    pygame.draw.line(screen, black, (w/2, h/2), (x_i , y_i), 6)
-"""
 
 
 # Setting up initial stuff
@@ -170,70 +150,40 @@ screen = pygame.display.set_mode((800, 600))
 w, h = pygame.display.get_surface().get_size()
 screen.fill((255, 255, 255))
 pygame.display.set_caption('The Mandelbrot Set')
-clock = pygame.time.Clock()
-black = (0, 0, 0)
 
-origin = (w/2, h/2)
+complex_matrix = np.zeros((w, h), dtype=complex) # don't touch this one its so important
+max_iterations = 100 # higher = better detail, but more intensive
 
-complexMatrix = np.zeros((w, h), dtype=complex) # don't touch this one its so important
-max_iterations = 500 # higher = better detail, but more intensive
+# range of x and y values to plot
+x_start = -2
+x_end = 1
+y_start = -1
+y_end = 1
 
-reStart = -2
-reEnd = 1
-imStart = -1
-imEnd = 1
-
-plot(reStart, reEnd, imStart, imEnd) # inital mandelbrot plot
+plot(x_start, x_end, y_start, y_end) # inital mandelbrot plot
 pygame.display.update()
-rectStart = ()
-rectEnd = ()
-
-"""
-s2 = complex(-0.12265331664580725, -0.0016694490818029983)
-
-which_screen = 1
-zs2 = 0
-ns2 = 0
-"""
+rect_start = ()
+rect_end = ()
 
 running = True
 while running:
-    clock.tick(60)
     for event in pygame.event.get():
-        if event.type == pygame.QUIT:
+        if event.type == pygame.QUIT: # end program if window is closed
             running = False
             pygame.quit()
-        elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1: # and which_screen == 1:
-            rectStart = event.pos
+        elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1: # if mouse button is pressed get the position
+            rect_start = event.pos
             pygame.display.update()
-        elif event.type == pygame.MOUSEBUTTONUP and event.button == 1: # and which_screen == 1:
-            rectEnd = event.pos
-            rectS, rectE = make_rectangle(rectStart, rectEnd)
-            zoom(rectS, rectE)
+        elif event.type == pygame.MOUSEBUTTONUP and event.button == 1: # if mouse button is released get position and zoom in
+            rect_end = event.pos
+            rect_s, rect_e = make_rectangle(rect_start, rect_end)
+            zoom(rect_s, rect_e)
             pygame.display.update()
         elif event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_BACKSPACE: # and which_screen == 1:
-                plot(reStart, reEnd, imStart, imEnd)
+            if event.key == pygame.K_BACKSPACE: # if backspace is pressed, zoom out fully
+                plot(x_start, x_end, y_start, y_end)
                 pygame.display.update()
-            elif event.key == pygame.K_ESCAPE:
+            elif event.key == pygame.K_ESCAPE: # if escape is pressed end program
                 pygame.quit()
-    """
-            elif event.key == pygame.K_RIGHT:
-                which_screen = 2
-            elif event.key == pygame.K_LEFT:
-                which_screen = 1
-                plot(reStart, reEnd, imStart, imEnd)
 
-
-    if which_screen == 2:
-        screen.fill((255, 255, 255))
-        pygame.draw.line(screen, black, (0, h/2), (w, h/2))
-        pygame.draw.line(screen, black, (w/2, 0), (w/2, h))
-
-        if abs(zs2) <= 2 and ns2 < max_iterations:
-            zs2 = zs2*zs2 + s2
-            ns2 += 1
-            screen2(zs2)
-    """
-
-    pygame.event.get()
+    print(rect_start, rect_end)
